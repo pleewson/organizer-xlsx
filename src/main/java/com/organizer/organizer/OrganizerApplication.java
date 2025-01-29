@@ -1,7 +1,8 @@
 package com.organizer.organizer;
 
 import com.organizer.organizer.exceloperations.ExcelOperations;
-import com.organizer.organizer.exceloperations.TaskOperations;
+import com.organizer.organizer.menu.Menu;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,16 +11,26 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @Slf4j
 public class OrganizerApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(OrganizerApplication.class, args);
+    private final Menu menu;
+    private final ExcelOperations excelOperations;
 
-		ExcelOperations excelOperations = new ExcelOperations(new TaskOperations());
-//		excelOperations.createFile();
-		excelOperations.addTaskToFile();
+    public OrganizerApplication(Menu menu, ExcelOperations excelOperations) {
+        this.menu = menu;
+        this.excelOperations = excelOperations;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(OrganizerApplication.class, args);
+    }
+
+    @PostConstruct
+    public void init(){
 
 
-//		TaskOperations taskOperations = new TaskOperations();
-//		taskOperations.addNewTask();
-	}
+        excelOperations.start();
+        menu.openMenu();
+    }
+
+    //todo fix incrementing id
 
 }
