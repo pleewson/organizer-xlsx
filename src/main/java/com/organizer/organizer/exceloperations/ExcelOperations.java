@@ -7,21 +7,37 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Slf4j
+@Service
 public class ExcelOperations {
     public static final String FILE_NAME = "organizer.xlsx";
-    private TaskOperations taskOperations;
+    private TaskService taskOperations;
 
-    public ExcelOperations(TaskOperations taskOperations) {
+    public ExcelOperations(TaskService taskOperations) {
         this.taskOperations = taskOperations;
     }
 
-    public void createFile() {
+
+    public void start() {
+        Path filePath = Paths.get("organizer.xlsx");
+        if (Files.exists(filePath)) {
+            log.info("loading data..");
+            //load all data
+        } else {
+            createFile();
+        }
+    }
+
+    public void createFile() { //todo -> private
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet dailySheet = workbook.createSheet("Daily Tasks");
             Sheet weeklySheet = workbook.createSheet("Weekly Tasks");
@@ -40,7 +56,7 @@ public class ExcelOperations {
                 workbook.write(fileOut);
             }
 
-            log.info("() has been created", FILE_NAME);
+            log.info("creating new .xlsx file..");
 
         } catch (IOException ex) {
             log.info("problem with creating file - ()", FILE_NAME);
@@ -52,7 +68,7 @@ public class ExcelOperations {
     public void addTaskToFile() {
         Task task = taskOperations.addNewTask();
 
-        try (FileInputStream fis = new FileInputStream("organizer.xlsx")) {
+        try (FileInputStream fis = new FileInputStream(FILE_NAME)) {
 
             Workbook workbook = new XSSFWorkbook(fis);
             //0-daily
@@ -87,9 +103,11 @@ public class ExcelOperations {
             row.createCell(4).setCellValue(task.getStatus());
 
 
-            try(FileOutputStream fos = new FileOutputStream("organizer.xlsx")){
+            try (FileOutputStream fos = new FileOutputStream("organizer.xlsx")) {
                 workbook.write(fos);
             }
+
+            System.out.println("new task has been added.");
 
         } catch (IOException ex) {
             log.info("Problem with file ()", FILE_NAME);
@@ -109,4 +127,24 @@ public class ExcelOperations {
     }
 
 
+    protected static long getHighestId() {
+        long highestId = 0;
+        try (FileInputStream fis = new FileInputStream(FILE_NAME);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+
+
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                Sheet sheet = workbook.getSheetAt(i);
+                Row firstRow = sheet.getRow(0);
+                if (highestId < firstRow.getLastCellNum() - 1) {
+                    highestId = firstRow.getLastCellNum() - 1;
+                }
+            }
+            log.info("highest ID is -> {}", highestId);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        return highestId+1;
+    }
 }

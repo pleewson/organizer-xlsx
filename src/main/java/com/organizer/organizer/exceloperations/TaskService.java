@@ -4,10 +4,17 @@ import com.organizer.organizer.model.Task;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 @Service
-public class TaskOperations {
+public class TaskService {
+    private List<Task> dailyTasks = new ArrayList<>();
+    private List<Task> weeklyTasks = new ArrayList<>();
+    private List<Task> monthlyTasks = new ArrayList<>();
+    private List<Task> yearlyTasks = new ArrayList<>();
+
     public Task addNewTask() {
         Task task = new Task();
         Scanner scanner = new Scanner(System.in);
@@ -38,7 +45,7 @@ public class TaskOperations {
             }
         }
 
-        task.setId(1); //todo
+        task.setId(ExcelOperations.getHighestId());
         task.setStatus("IN PROGRESS");
         task.setProgress("0%");
         task.setCreatedDate(LocalDateTime.now());
@@ -46,5 +53,10 @@ public class TaskOperations {
         System.out.println("newTASK -> " + task.toString());
 
         return task;
+    }
+
+
+    private void getHighestId() {
+
     }
 }
